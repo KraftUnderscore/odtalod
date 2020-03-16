@@ -2,6 +2,7 @@
 using TMPro;
 
 [RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(AudioSource))]
 public class DeerController : MonoBehaviour
 {
     [SerializeField]
@@ -17,7 +18,17 @@ public class DeerController : MonoBehaviour
     [SerializeField]
     private GameObject babyPrefab;
 
+    [SerializeField]
+    private AudioClip babyBorn;
+    [SerializeField]
+    private AudioClip deerAdult;
+    [SerializeField]
+    private AudioClip deerBaby;
+    [SerializeField]
+    private AudioClip deerGrowUp;
+
     private Animator animator;
+    private AudioSource audioSource;
 
     private Vector2 startPos;
     private Vector2 nextPos;
@@ -41,6 +52,7 @@ public class DeerController : MonoBehaviour
     private void Awake()
     {
         animator = GetComponent<Animator>();
+        audioSource = GetComponent<AudioSource>();
         timerText = transform.GetChild(0).GetChild(0).GetComponent<TextMeshProUGUI>();
         waterNeed = transform.GetChild(0).GetChild(1).GetChild(0).gameObject;
         foodNeed = transform.GetChild(0).GetChild(1).GetChild(1).gameObject;
@@ -61,10 +73,14 @@ public class DeerController : MonoBehaviour
         makingBBTimer = Random.Range(breedTimeMinMax.x, breedTimeMinMax.y);
     }
 
+    private void OnEnable()
+    {
+        animator.SetBool("isBaby", isBaby);
+    }
+
     // Update is called once per frame
     void Update()
     {
-        Debug.Log($"Deer: fence {isInFences}, fed: {isFed}, water: {isWatered}, adult: {!isBaby}");
         if(isInFences)
         {
             if (!isFed || !isWatered)
@@ -88,6 +104,8 @@ public class DeerController : MonoBehaviour
                 }
                 else
                 {
+                    audioSource.clip = deerGrowUp;
+                    audioSource.Play();
                     isBaby = false;
                     animator.SetBool("isBaby", false);
                     isFed = false;
@@ -128,6 +146,9 @@ public class DeerController : MonoBehaviour
 
         if (Mathf.Abs((new Vector2(transform.position.x, transform.position.y) - nextPos).magnitude) < proximity)
         {
+            if (isBaby) audioSource.clip = deerBaby;
+            else audioSource.clip = deerAdult;
+            audioSource.Play();
             waitTimer = Random.Range(waitTimeMinMax.x, waitTimeMinMax.y);
             nextPos = new Vector2(Random.Range(startPos.x - walkRadius, startPos.x + walkRadius), Random.Range(startPos.y - walkRadius, startPos.y + walkRadius));
             if (transform.position.x - nextPos.x < 0) transform.localScale = new Vector3(-1f, 1f, 1f);
@@ -154,6 +175,10 @@ public class DeerController : MonoBehaviour
         else if (this.isInFences && !isInFences)
             GameManager.instance.DecreaseScore();
 
+        if (isBaby) audioSource.clip = deerBaby;
+        else audioSource.clip = deerAdult;
+        audioSource.Play();
+
         this.isInFences = isInFences;
         if(isInFences)
         {
@@ -179,6 +204,8 @@ public class DeerController : MonoBehaviour
 
     private void MakeBaby()
     {
+        audioSource.clip = babyBorn;
+        audioSource.Play();
         GameObject newDeer = Instantiate(babyPrefab);
         DeerController dc = newDeer.GetComponent<DeerController>();
         dc.SetBaby();
@@ -200,7 +227,8 @@ public class DeerController : MonoBehaviour
         isBaby = true;
         animator.SetBool("isBaby", isBaby);
         isInFences = true;
-        nextPos = new Vector2(3.75f, 0f);
+        transform.position = new Vector2(3.75f, 0f);
+        nextPos = transform.position;
         startPos = nextPos;
         walkRadius = startingWalkRadius * 1.5f;
     }

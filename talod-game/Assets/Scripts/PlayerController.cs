@@ -20,6 +20,16 @@ public class PlayerController : MonoBehaviour
     private float waterRadius;
     [SerializeField]
     private float feedRadius;
+    [SerializeField]
+    private AudioClip steelDeer;
+    [SerializeField]
+    private AudioClip water;
+    [SerializeField]
+    private AudioClip feed;
+    [SerializeField]
+    private AudioSource walking;
+    [SerializeField]
+    private AudioSource actions;
 
     private new Rigidbody2D rigidbody;
     private Animator animator;
@@ -53,6 +63,8 @@ public class PlayerController : MonoBehaviour
         if(Input.GetButtonDown("Feed"))
         {
             animator.SetTrigger("feed");
+            actions.clip = feed;
+            actions.Play();
             Collider2D[] deers = Physics2D.OverlapCircleAll(grabPoint.position, feedRadius, 1 << LayerMask.NameToLayer("Deers"));
             foreach(Collider2D d in deers)
             {
@@ -68,6 +80,8 @@ public class PlayerController : MonoBehaviour
         if(Input.GetButtonDown("Water"))
         {
             animator.SetTrigger("water");
+            actions.clip = water;
+            actions.Play();
             Collider2D[] deers = Physics2D.OverlapCircleAll(grabPoint.position, waterRadius, 1 << LayerMask.NameToLayer("Deers"));
             foreach (Collider2D d in deers)
             {
@@ -85,11 +99,14 @@ public class PlayerController : MonoBehaviour
         {
             Collider2D deer = Physics2D.OverlapCircle(grabPoint.position, grabRadius, 1 << LayerMask.NameToLayer("Deers"));
             if (deer == null) return;
+            
             grabbedDeer = deer.GetComponent<DeerController>();
             grabbedDeer.Grab(grabPoint);
             isGrabbing = true;
             animator.SetTrigger("grab");
             grabCheck = false;
+            actions.clip = steelDeer;
+            actions.Play();
         }
     }
 
@@ -109,7 +126,8 @@ public class PlayerController : MonoBehaviour
 
     private void GrabChecker()
     {
-        if (Input.GetButtonUp("Grab")) grabCheck = true;
+        if (Input.GetButtonUp("Grab")) 
+            grabCheck = true;
     }
 
     private void Movement()
@@ -123,7 +141,7 @@ public class PlayerController : MonoBehaviour
 
         rigidbody.velocity = new Vector2(moveX * speed * speedModifier, moveY * speed * speedModifier);
         animator.SetFloat("walkSpeed", Mathf.Abs(rigidbody.velocity.magnitude));
-
+        walking.volume = Mathf.Clamp01(rigidbody.velocity.magnitude * 0.025f);
         if (moveX < 0f) transform.localScale = new Vector3(-1f, 1f, 1f);
         else transform.localScale = Vector3.one;
 

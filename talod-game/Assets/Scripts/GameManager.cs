@@ -18,6 +18,8 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private GameObject gameOverMenu;
     [SerializeField]
+    private GameObject playerControls;
+    [SerializeField]
     private GameObject deers;
     [SerializeField]
     private GameObject introMenu;
@@ -25,6 +27,8 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private int playMinutes;
+
+    private AudioSource confirmSound;
 
     [HideInInspector]
     public static GameManager instance;
@@ -56,6 +60,7 @@ public class GameManager : MonoBehaviour
                     deers.SetActive(true);
                     scoreText.gameObject.SetActive(true);
                     timerText.gameObject.SetActive(true);
+                    playerControls.SetActive(true);
                     DisplayScore();
                     DisplayTime();
                     break;
@@ -78,6 +83,7 @@ public class GameManager : MonoBehaviour
         backPanel.SetActive(false);
         mainMenu.SetActive(false);
         gameOverMenu.SetActive(false);
+        playerControls.SetActive(false);
     }
 
     private void Start()
@@ -89,6 +95,7 @@ public class GameManager : MonoBehaviour
     {
         instance = this;
         timer = playMinutes * 60f;
+        confirmSound = GetComponent<AudioSource>();
     }
 
     private void Update()
@@ -114,6 +121,7 @@ public class GameManager : MonoBehaviour
                 {
                     introMenu.transform.GetChild(introStep - 1).gameObject.SetActive(false);
                     introMenu.transform.GetChild(introStep).gameObject.SetActive(true);
+                    confirmSound.Play();
                 }
                 else
                 {
