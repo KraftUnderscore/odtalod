@@ -21,7 +21,8 @@ public class DeerController : MonoBehaviour
 
     private Vector2 startPos;
     private Vector2 nextPos;
-    private float proximity = 0.2f;
+    private float proximity = 0.05f;
+    private float startingWalkRadius;
 
     private float waitTimer;
     private float growingTimer = 30f;
@@ -47,6 +48,8 @@ public class DeerController : MonoBehaviour
         timerText.SetText("");
         waterNeed.SetActive(false);
         foodNeed.SetActive(false);
+
+        startingWalkRadius = walkRadius;
     }
 
     // Start is called before the first frame update
@@ -146,9 +149,25 @@ public class DeerController : MonoBehaviour
 
     public void Release(bool isInFences)
     {
+        if (!this.isInFences && isInFences)
+            GameManager.instance.IncreaseScore();
+        else if (this.isInFences && !isInFences)
+            GameManager.instance.DecreaseScore();
+
         this.isInFences = isInFences;
-        nextPos = grabPoint.position;
-        startPos = nextPos;
+        if(isInFences)
+        {
+            nextPos = new Vector2(3.75f, 0f);
+            startPos = nextPos;
+            walkRadius = startingWalkRadius*1.5f;
+        }
+        else
+        {
+            nextPos = grabPoint.position;
+            startPos = nextPos;
+            walkRadius = startingWalkRadius;
+        }
+
         grabPoint = null;
         transform.position = nextPos;
         if(isInFences)
@@ -160,7 +179,10 @@ public class DeerController : MonoBehaviour
 
     private void MakeBaby()
     {
-        Instantiate(babyPrefab);
+        GameObject newDeer = Instantiate(babyPrefab);
+        DeerController dc = newDeer.GetComponent<DeerController>();
+        dc.SetBaby();
+        GameManager.instance.IncreaseScore();
     }
 
     public void Feed()
@@ -171,5 +193,15 @@ public class DeerController : MonoBehaviour
     public void Water()
     {
         if (isInFences) isWatered = true;
+    }
+
+    public void SetBaby()
+    {
+        isBaby = true;
+        animator.SetBool("isBaby", isBaby);
+        isInFences = true;
+        nextPos = new Vector2(3.75f, 0f);
+        startPos = nextPos;
+        walkRadius = startingWalkRadius * 1.5f;
     }
 }
